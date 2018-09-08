@@ -1,22 +1,67 @@
-Based on agent, verb, target
+Based on agent, action, target
 Distinguish "own" state vs "external" properties: 
   - color and length are internal
   - position is an external property
   - size is external: it is a function of internal state and can take many forms (fuzzy, exact, etc)
   - this allows properties to be added
+  - modification of internal property can be guarded in the usual way (define an action for the property)
 
 Basic types: 
-object (a sequence of one)
-sequence of objects (a tree with one branch)
-tree of objects (a directed network with one root and each node has only one parent): it has branches, inner nodes, leaf nodes, rows
-network of objects
-a table is a sequence of sequences
-a table is also a tree of branches of same length, where branches represent columns
+- object (a sequence of one)
+- sequence of objects (a tree with one branch)
+- tree of objects (a directed network with one root and each node has only one parent): it has branches, inner nodes, leaf nodes, rows
+- network of objects
+- a table is a sequence of sequences
+- a table is also a tree of branches of same length, where branches represent columns
+
+Object, also [] empty network/tree/sequence/None
+Sequence: 
+  [object1, object2, ..., objectN]
+  or [object1 -> object2 -> object3 -> ... -> objectN] (column)
+  or (object1, object2) tuple (static content and length)
+  many object = True only if object is a non-empty sequence
+  
+Tree:
+  root object:
+    object 1: 
+      object 1.1
+    object 2:
+      object 2.1
+      object 2.2
+        object 2.2.1
+        object 2.2.2
+      object 2.3
+    object 3
+      
+  or [root object -> [
+        object 1 -> object 1.1, 
+        object 2 -> [
+          object 2.1, 
+          object 2.2 -> [object 2.2.1, object 2.2.2], 
+          object 2.3
+        ], 
+        object 3
+      ] 
+        
+Network:
+[
+  object 1 -> [
+    object 1.1, 
+    object 2.1,
+    object 2.2.2
+  ]
+  object 2 -> [
+    object 2.1, 
+    object 2.2 -> [object 2.2.1, object 2.2.2], 
+    object 2.3 -> object 1
+  ], 
+  object 3 -> object 1
+] 
 
 class House:
   actions: 
     open door:
-      change state
+      change own state
       interact with target(s)
       interact with environment (globals -- such as interpreter, filesystem, network, timer)
       context sensitive (there is a default "always" context)
@@ -32,9 +77,9 @@ class House:
   defin top of (many Floor): 
     last of (many Floor) 
     
-  state:
+  own state:
     floors: list of [Floor, Floor, Floor]
-    door: Door floor front
+    door: Door bottom-of-floors
     window 
     ...
       
@@ -42,10 +87,86 @@ class House:
     
 # external property: 
 define size of House: 
-  big: radius > 5
-  small: radius < 2
-  gray: else
+  choose:
+    big: radius > 5
+    small: radius < 2
+    gray: else
   
 # external property: 
 define radius of House:
   cuberoot of ((length * height * width) of House / (width * height) of Window)
+  
+define position of House: 
+  fpv x
+  fpv y
+  fpv z
+  
+class radian extends fpv
+
+define orientation of House: 
+  fpv zrot
+  fpv yrot
+  fpv xrot
+
+define power(exponent) of position:
+  x^exponent + y^exponent + z^exponent
+  
+define position(Relative, Observer) of House: 
+  beside: 
+    dir_to_house = position of House - position of Observer # infers dir is fpv
+    dir_to_rel = position of House - position of Relative # infers dir is fpv
+    distance = square_root of (dir_to_house - dir_to_rel)^2
+    ... # determine if too far behind or in front of, to be considered beside
+    choose from a = (radius of House) / distance, 
+                b = (radius of Relative) / distance, 
+                c = too_far_or_near: 
+      too_far_or_near is true: no
+      a + b ~= 1: yes
+      otherwise: no  # this is optional, as it is the "pass through" result
+  under:
+    ...
+  above: 
+    ...
+  in_front_of:
+    ...
+  behind: 
+    ...
+  inside:
+    ...
+  
+define dusty of House: 
+  choose:
+    yes: dust of House > 5
+    
+define funcName of args:
+  do stuff
+  conditional return objects
+  do more 
+  last expression returns object, if caller asked for it
+  
+define sqrt of (a, b)
+a = funcName(args)  # call funcName
+funcName(args)  # don't care about return, just side effects
+  
+house = new House(a, b, c)
+house2 = house # reference
+unset house
+dispose house2 # unsets and calls its finalizer
+
+houses = many House  # empty sequence
+set_of_houses = set(houses) # create a set from the houses
+list_of_houses = list(houses) # create a doubly linked list
+tuple_of_houses = tuple(houses) # create const array
+
+a, b = 1, 2  # infer a, b are int
+a = 'asdf'  # error: type cannot change
+
+class A extends B
+  own state: 
+    a=2 # overrides values in B
+    
+a = new B # infer that type of a = B
+a = new A # ok because A derives from B, so it is more specific
+b = new A # infer that type of b = A
+b = new B # error because B is not a specialization of A
+
