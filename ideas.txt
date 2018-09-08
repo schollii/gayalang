@@ -1,0 +1,51 @@
+Based on agent, verb, target
+Distinguish "own" state vs "external" properties: 
+  - color and length are internal
+  - position is an external property
+  - size is external: it is a function of internal state and can take many forms (fuzzy, exact, etc)
+  - this allows properties to be added
+
+Basic types: 
+object (a sequence of one)
+sequence of objects (a tree with one branch)
+tree of objects (a directed network with one root and each node has only one parent): it has branches, inner nodes, leaf nodes, rows
+network of objects
+a table is a sequence of sequences
+a table is also a tree of branches of same length, where branches represent columns
+
+class House:
+  actions: 
+    open door:
+      change state
+      interact with target(s)
+      interact with environment (globals -- such as interpreter, filesystem, network, timer)
+      context sensitive (there is a default "always" context)
+      return object(s)
+      
+    ...
+    
+  class Foor
+  
+  define bottom of (many Floor): 
+    first of (many Floor)
+    
+  defin top of (many Floor): 
+    last of (many Floor) 
+    
+  state:
+    floors: list of [Floor, Floor, Floor]
+    door: Door floor front
+    window 
+    ...
+      
+    ...
+    
+# external property: 
+define size of House: 
+  big: radius > 5
+  small: radius < 2
+  gray: else
+  
+# external property: 
+define radius of House:
+  cuberoot of ((length * height * width) of House / (width * height) of Window)
