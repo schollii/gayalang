@@ -71,10 +71,10 @@ class House:
     
   class Foor
   
-  define bottom of (many Floor): 
+  property bottom of (many Floor): 
     first of (many Floor)
     
-  defin top of (many Floor): 
+  property top of (many Floor): 
     last of (many Floor) 
     
   own state:
@@ -86,20 +86,20 @@ class House:
     ...
     
 # external property: 
-define size of House: 
+property size of House: 
   choose:
     big: radius > 5
     small: radius < 2
     gray: else
   
 # external property: 
-define radius of House:
+property radius of House:
   cuberoot of ((length * height * width) of House / (width * height) of Window)
   
 define position of House: 
-  fpv x
-  fpv y
-  fpv z
+  fpv x = x of House
+  fpv y = y of House
+  fpv z = z of House
   
 class radian extends fpv
 
@@ -144,7 +144,8 @@ define funcName of args:
   do more 
   last expression returns object, if caller asked for it
   
-define sqrt of (a, b)
+define sqrt of (a, b):
+  ...
 a = funcName(args)  # call funcName
 funcName(args)  # don't care about return, just side effects
   
@@ -161,7 +162,9 @@ tuple_of_houses = tuple(houses) # create const array
 a, b = 1, 2  # infer a, b are int
 a = 'asdf'  # error: type cannot change
 
-class A extends B
+class A:
+  extends B
+  
   own state: 
     a=2 # overrides values in B
     
@@ -170,3 +173,36 @@ a = new A # ok because A derives from B, so it is more specific
 b = new A # infer that type of b = A
 b = new B # error because B is not a specialization of A
 
+sel_houses = houses where: 
+  (x, y) of position of houses > (3, 3)  # same as [h for h in house if h.x > 3 and h.y > 3]
+  # this creates a sequence of booleans
+  
+far_houses_test = (x, y) of position2 of houses > (3, 3) defined with: 
+  position2:
+    position of house - 1
+    
+define far_house of House: 
+  choose: 
+    true: (x, y) of position of House > (3, 3)
+    
+define far_houses of (many House): 
+  each of ( (x, y) of position of (many House) > (3, 3) ) is true
+    
+
+explore definition using : instead of = to disambiguate equality vs definition
+
+a: new B
+b: a
+class A:
+  extends B
+  override B.a: # completly hide all definitions of B.a
+  overload B.a(a, b, c):  # add a definition of B.a to A
+    ....
+    
+if a is b
+if (a: b + c) > 2:
+if (a: b + c) >= 2:
+if (a: b + c) > 2:
+if (a: b + c) ~= 2 within 0.04:  # absolute within
+if (a: b + c) ~> d within (4%, rel=true):  # relative within
+if a = b:
